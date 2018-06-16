@@ -1,13 +1,22 @@
 ---
-title: "Regressão linear na prática"
-output: html_notebook
+title: "Regressao linear na pratica"
+output:
+  html_document: default
+  pdf_document: default
 ---
 
-```{r warning=FALSE, echo=FALSE}
+## Dados da CAPES sobre avaliacao da pos-graduacao
+
+A CAPES e um orgao do MEC que tem a atribuicao de acompanhar a pos-graduacao na universidade brasileira. Uma das formas que ela encontrou de fazer isso e pela qual ela e bastante criticada atraves de uma avaliacao quantitativa a cada x anos (era 3, mudou para 4).
+
+Usaremos dados da penultima avaliacao da CAPES:
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 library(tidyverse)
 library(broom)
 library(modelr)
-source(here::here("code/lib.R"))
+source(here::here("/code/lib.R"))
+options(encoding = 'UTF-8')
 theme_set(theme_report())
 
 knitr::opts_chunk$set(tidy = FALSE,
@@ -21,23 +30,17 @@ paleta = c("#404E4D",
            "#F4743B")
 ```
 
-## Dados da CAPES sobre avaliação da pós-graduação
-
-A CAPES é um órgão do MEC que tem a atribuição de acompanhar a pós-graduação na universidade brasileira. Uma das formas que ela encontrou de fazer isso e pela qual ela é bastante criticada é através de uma avaliação quantitativa a cada x anos (era 3, mudou para 4). 
-
-Usaremos dados da penúltima avaliação da CAPES: 
-
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 cacc = read_projectdata()
 
 glimpse(cacc)
 ```
 
-### Produção e produtividade de artigos
+### Producao e produtividade de artigos
 
-Uma das maneiras de avaliar a produção dos docentes que a CAPES utiliza é quantificando a produção de artigos pelos docentes. Os artigos são categorizados em extratos ordenados (A1 é o mais alto), e separados entre artigos em conferências e periódicos. Usaremos para esse lab a produção em periódicos avaliados com A1, A2 e B1. 
+Uma das maneiras de avaliar a producao dos docentes que a CAPES utiliza e quantificando a producao de artigos pelos docentes. Os artigos sao categorizados em extratos ordenados (A1 e o mais alto), e separados entre artigos em conferencias e periodicos. Usaremos para esse lab a producao em periodicos avaliados com A1, A2 e B1.
 
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 cacc = cacc %>% 
   mutate(producao = (periodicos_A1 + periodicos_A2 + periodicos_B1), 
          produtividade = producao / `Docentes permanentes`, 
@@ -50,7 +53,7 @@ cacc = cacc %>%
 
 ### EDA
 
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 cacc %>% 
   ggplot(aes(x = `Docentes permanentes`)) + 
   geom_histogram(bins = 15, fill = paleta[1])
@@ -64,19 +67,20 @@ cacc %>%
   geom_histogram(bins = 15, fill = paleta[3])
 ```
 
-Se quisermos modelar o efeito do tamanho do programa em termos de docentes (permanentes) na quantidade de artigos publicados, podemos usar regressão. 
 
-*Importante*: sempre queremos ver os dados antes de fazermos qualquer modelo ou sumário: 
+Se quisermos modelar o efeito do tamanho do programa em termos de docentes (permanentes) na quantidade de artigos publicados, podemos usar regressao.
 
-```{r}
+*Importante*: sempre queremos ver os dados antes de fazermos qualquer modelo ou sumario:
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 cacc %>% 
   ggplot(aes(x = `Docentes permanentes`, y = producao)) + 
   geom_point()
 ```
 
-Parece que existe uma relação. Vamos criar um modelo então:
+Parece que existe uma relacao. Vamos criar um modelo entao:
 
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 modelo1 = lm(producao ~ `Docentes permanentes`, data = cacc)
 
 tidy(modelo1, conf.int = TRUE, conf.level = 0.95)
@@ -85,7 +89,7 @@ glance(modelo1)
 
 Para visualizar o modelo:
 
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 cacc_augmented = cacc %>% 
   add_predictions(modelo1) 
 
@@ -93,45 +97,39 @@ cacc_augmented %>%
   ggplot(aes(x = `Docentes permanentes`)) + 
   geom_line(aes(y = pred), colour = "brown") + 
   geom_point(aes(y = producao)) + 
-  labs(y = "Produção do programa")
+  labs(y = "Producao do programa")
 ```
 
-Se considerarmos que temos apenas uma amostra de todos os programas de pós em CC no Brasil, o que podemos inferir a partir desse modelo sobre a relação entre número de docentes permanentes e produção de artigos em programas de pós? 
-
-Normalmente reportaríamos o resultado da seguinte maneira, substituindo VarIndepX e todos os x's e y's pelos nomes e valores de fato:
-
-> Regressão múltipla foi utilizada para analisar se VarIndep1 e VarIndep2 tem uma associação significativa com VarDep. Os resultados da regressão indicam que um modelo com os 2 preditores no formato VarDep = XXX.VarIndep1 + YYY.VarIndep2 explicam XX,XX% da variância da variável de resposta (R2 = XX,XX). VarIndep1, medida como/em [unidade ou o que é o 0 e o que é 1] tem uma relação significativa com o erro (b = [yy,yy; zz,zz], IC com 95%), assim como VarIndep2 medida como [unidade ou o que é o 0 e o que é 1] (b = [yy,yy; zz,zz], IC com 95%). O aumento de 1 unidade de VarIndep1 produz uma mudança de xxx em VarDep, enquanto um aumento...
-
-Produza aqui a sua versão desse texto, portanto:
+*Se considerarmos que temos apenas uma amostra de todos os programas de pos em CC no Brasil, o que podemos inferir a partir desse modelo sobre a relacaoo entre numero de docentes permanentes e producao de artigos em programas de pos?*
 
 -----
 
-*SUBSTITUA ESSE TEXTO*
+A Regressao linear foi utilizada para analisar se quantidade de docentes permanentes tem uma associacao significativa com producao do programa de pos graduacao, definido pela quantidade de artigos publicados em periodicos com qualis A1, A2 e B1. Os resultados da regressao indicam que um modelo com 1 preditor, apresentando docentes permanentes (x) como a variavel independente e a producao do programa (y) como a variavel dependente, no formato: $$y = -39.29 + 4.74 \cdot x, $$ explica $80.81%$ da variancia da variavel de resposta ($R^2 = 0.8081$). A variavel $x$ (quantidade de docentes permanentes), tem uma relacao significativa com o erro ($b = [4.19; 5.29]$, IC com $95%$). O aumento de 1 unidade de $x$ produz uma mudanca de mais ou menos $4.74$ em $y$, que pode ser verificado na associacao do valor estimado para a variavel Docentes permanentes.
 
 -----
 
-Dito isso, o que significa a relação que você encontrou na prática para entendermos os programas de pós graduação no Brasil? E algum palpite de por que a relação que encontramos é forte?
+*Dito isso, o que significa a relacao que voce encontrou na pratica para entendermos os programas de pos graduacao no Brasil? E algum palpite de por que a relacao que encontramos e forte?*
 
 -----
 
-*SUBSTITUA ESSE TEXTO PELA SUA DISCUSSÃO DOS RESULTADOS*
+A relacao entre as variaveis mostra que producao bem avaliada e quantidade de docentes permamentes em programas de pos graduacao pode ser explicada em mais de 80%. Podemos concluir que o resultado esta fortemente ligado, existe uma relacao fiel entre as variaveis. Essa relevancia todo se da por conta que na publicacao de um artigo constar o nome do orientador e no caso esse ser docente permanente (O programa e voltado para ter como orientadores professores permanentes na instituicao).
 
 -----
 
 ## Mais fatores
 
-E se considerarmos também o número de alunos?
+E se considerarmos tambem o numero de alunos?
 
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 modelo2 = lm(producao ~ `Docentes permanentes` + mestrados + doutorados, data = cacc)
 
 tidy(modelo2, conf.int = TRUE, conf.level = 0.95)
 glance(modelo2)
 ```
 
-Visualizar o modelo com muitas variáveis independentes fica mais difícil
+Visualizar o modelo com muitas variaveis independentes fica mais dificil
 
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 para_plotar_modelo = cacc %>% 
   data_grid(producao = seq_range(producao, 10), # Crie um vetor de 10 valores no range
             `Docentes permanentes` = seq_range(`Docentes permanentes`, 4),  
@@ -144,7 +142,7 @@ glimpse(para_plotar_modelo)
 
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
 para_plotar_modelo %>% 
   ggplot(aes(x = `Docentes permanentes`, y = pred)) + 
   geom_line(aes(group = doutorados, colour = doutorados)) + 
@@ -152,17 +150,46 @@ para_plotar_modelo %>%
   geom_point(data = cacc, aes(y = producao, colour = doutorados))
 ```
 
-Considerando agora esses três fatores, o que podemos dizer sobre como cada um deles se relaciona com a produção de um programa de pós em CC? E sobre o modelo? Ele explica mais que o modelo 1? 
+Considerando agora esses tres fatores, o que podemos dizer sobre como cada um deles se relaciona com a producao de um programa de pos em CC? E sobre o modelo? Ele explica mais que o modelo 1?
 
 -----
 
-**EXPLICAÇÃO**: *Substitua esse texto por texto feito tal qual o que usamos com uma variável*
+A Regressao multipla foi utilizada para analisar se quantidade de docentes permanentes, numero de alunos de mestrado e numero de alunos de doutorado tem uma associacao significativa com producao do programa de pos graduacao. 
+Os resultados da regressao indicam que um modelo com os 3 preditores, sendo docentes permanentes ($x$), alunos de mestrado ($z$) e alunos de doutorado ($w$) como variaveis independentes e a quantidade de producao no programa ($y$) como a variavel dependente, no formato: $$y = -11.64 + 3.28 \cdot x - 0.17 \cdot z + 1.026 \cdot w, $$ explicam $86.70%$ da variancia da variavel de resposta ($R^2 = 0.8670$). 
+A variavel $x$ (quantidade de docentes permanentes), tem uma forte relacao com o erro $([2.4; 4.16]$, IC com $95%$). A a variavel $w$ (quantidade de alunos de doutorado), tem uma forte relacao com o erro ($[0.66; 1.397]$, IC com $95%$). 
+A variavel $z$ (quantidade de alunos de menstrado), apresentou uma relacao negativa, tem uma forte relacao com o erro ($[-0.33; -0.008]$, IC com $95%$). 
+
+Comparando o modelo atual ao modelo anterior, temos um R-squared de $6,7%$ a mais que o modelo 1. O modelo 2 explica $86,70%$ da variancia em $x$, enquanto o modelo 1 explica aproximadamente $80,81%$ da variancia em $x$. Assim as variaveis adicionadas ajustam mais o modelo aos dados com uma certa melhoria principalmente a variavel ($w$)(no efeito do modelo em relacao a producao do programa, principalmente a variavel $adt$, que representam os (alunos de doutorado).
 
 -----
 
 
 ## Agora produtividade 
 
-Diferente de medirmos produção (total produzido), é medirmos produtividade (produzido / utilizado). Abaixo focaremos nessa análise. Para isso crie um modelo que investiga como um conjunto de fatores que você julga que são relevantes se relacionam com a produtividade dos programas. Crie um modelo que avalie como _pelo menos 3 fatores_ se relacionam com a produtividade de um programa. Pode reutilizar fatores que já definimos e analizamos para produção. Mas cuidado para não incluir fatores que sejam função linear de outros já incluídos (ex: incluir A, B e um tercero C=A+B)
+Diferente de medirmos producao (total produzido), e medirmos produtividade (produzido / utilizado). Abaixo focaremos nessa analise. Para isso crie um modelo que investiga como um conjunto de fatores que voce julga que sao relevantes se relacionam com a produtividade dos programas. Crie um modelo que avalie como pelo menos 3 fatores se relacionam com a produtividade de um programa. Pode reutilizar fatores que ja definimos e analizamos para producao. Mas cuidado para nao incluir fatores que sejam funcao linear de outros ja incluidos (ex: incluir A, B e um tercero C=A+B)
 
-Produza abaixo o modelo e um texto que comente (i) o modelo, tal como os que fizemos antes, e (ii) as implicações - o que aprendemos sobre como funcionam programas de pós no brasil?.
+Produza abaixo o modelo e um texto que comente (i) o modelo, tal como os que fizemos antes, e (ii) as implicacoes - o que aprendemos sobre como funcionam programas de pos no brasil?
+
+
+MODELO
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+modelo_prev = lm(produtividade ~ Nivel + producao + doutorados, data = cacc)
+
+tidy(modelo_prev, conf.int = TRUE, conf.level = 0.95)
+```
+
+```{r message=FALSE, warning=FALSE, paged.print=FALSE}
+glance(modelo_prev)
+```
+
+Usando Regressao multipla para analisar se o nivel dos programas da pos graduacao, o numero de dissertacoes e o numero de Teses tem uma associacao significativa com producao do programa de pos graduacao. 
+Definimos um modelo com os 3 preditores, Nivel do programa ($x$), producao ($z$) e numero de doutorados($w$) como variaveis independentes e a produtividade no programa ($y$) como a variavel dependente, no formato: $$y = 0.074 + 0.383 \cdot x + 0.02\cdot z - 0.022\cdot w, $$ explicam $67.92%$ da variancia da variavel de resposta ($R^2 = 0.67916$). 
+A variavel $x$ (Nivel do programa), tem uma forte relacao com o erro $([0.078; 0.688]$, IC com $95%$). A variavel $z$ (numero de producoes), foi significativa com o erro $([0.013; 0.026]$, IC com $95%$). A a variavel $w$ (doutorados), nao tem uma forte relacao com o erro ($[-0.035; -0.0086]$, IC com $95%$).
+
+*CONCLUSAO*
+
+Analisando o modelos definido acima, verificamos que o nivel do programa de pos graduacao, a quantidade de producoes e o numero de doutorados explicam 68% da variancia da producao de artigos bem avaliados. O numero de doutorados causa pouca influencia na producao, enquanto as demais variaveis tem alguma influencia. Assim os criterios para manter o nivel das universidade forca as univerisidades a produzirem e evoluirem cada vez mais.
+
+
+OBS: TIVE PROBLEMAS COM A CODIFICACAO DOS CARACTERES (ESPERO COMPREENSAO)
